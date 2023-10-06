@@ -1,0 +1,5 @@
+Login to fit servers to our home repository. Need to be connected to web. Can test stuff and run code here.
+
+login command: ssh fitlogin@merlin.fit.vutbr.cz
+
+Then use fitPassword to log int enviroment.
