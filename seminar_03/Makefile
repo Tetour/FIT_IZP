@@ -1,4 +1,4 @@
-FILE_IN  = array.c
+FILE_IN  = caesar.c
 FILE_OUT = a.out
 
 ARGS_DEBUG = -g
