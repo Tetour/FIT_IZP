@@ -55,7 +55,9 @@ int main(int argc, char const *argv[])
 
     set_address_array(address_string);
 
-    analyze_one_address(0);
+    for (int i = 0; i < MAX_ADDRESS_COUNT; i++) {
+        analyze_one_address(i);
+    }
 
     print_results();
 
@@ -160,7 +162,7 @@ void print_results()
                 j++;
             }
         }
-        printf("Enable: %s", results);
+        printf("Enable: %s\n", results);
     } else if ((num_enabled_chars == 0) && (address_found_index != ADDRESS_NOT_FOUND)) {
         printf("Found: %s\n", address_array[address_found_index]);
     }
