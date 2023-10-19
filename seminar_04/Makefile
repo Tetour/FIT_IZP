@@ -1,8 +1,8 @@
-FILE_IN  = keyfilter.c
-FILE_OUT = keyfilter
+FILE_IN  = functions.c
+FILE_OUT = functions.out
 
 ARGS_DEBUG = -g
-ARGS       = -std=c11 -Wall -Wextra 		# -Werror
+ARGS       = -std=c11 -Wall -Wextra
 
 CC	 = gcc
 rm	 = rm
