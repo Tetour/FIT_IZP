@@ -8,7 +8,7 @@
             "args": ["all"],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": 1
             },
             "problemMatcher": []
         },

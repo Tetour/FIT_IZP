@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/keyfilter",
             // "args": ["$(cat addresses.txt)"],
-            "args": ["Praha", "$(cat addresses.txt)"],
+            "args": ["B", "$(cat addresses.txt)"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "externalConsole": false,

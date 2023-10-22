@@ -1,169 +1,107 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <string.h>     // TODO: remove redundant library inclusions
+#include <ctype.h>      // size_t variable type
+#include <stdbool.h>    // bool variable type
 
 
-#define DEBUG_ENABLE        1  // flag enabling debug output, 0 ... disabled, 1 ... enabled
-#define MAX_ADDRESS_COUNT   100
-#define MAX_ADDRESS_LENGTH  100
-#define MAX_CHARACTER_COUNT 26
-#define ADDRESS_NOT_FOUND   (MAX_ADDRESS_COUNT + 1)
+#define DEBUG_ENABLE        0       // flag enabling debug output, 0 ... disabled, 1 ... enabled
+#define MAX_ADDR_LEN        101     // number of character + one '\0' terminating character
+#define ASCII_CHAR_COUNT    128
 
 
-int     address_total_count = 0;
-int     address_found_index = ADDRESS_NOT_FOUND;
-int     enabled_chars[MAX_CHARACTER_COUNT] = {0};
-char    address_array[MAX_ADDRESS_COUNT][MAX_ADDRESS_LENGTH] = {0};
+void analyze_addresses(const char * prefix_str, const char * address_str);
+void print_solution();
 
-const char *prefix_string = "";
-const char *address_string = "";
 
-void set_address_count(const char *address_string);
-void set_address_array(const char *address_string);
-void analyze_one_address(int address_index);
-void print_results();
+bool ascii_table_flags[ASCII_CHAR_COUNT] = {0};
+char perfect_match_str[MAX_ADDR_LEN] = {0};
 
 
 int main(int argc, char const *argv[])
 {
     if (argc <= 1) {
-        printf("ERROR: No argument.\n");
-        exit(1);
+        fprintf(stderr, "ERROR: No argument.\n");
+        return 0;
     }
 
     if (argc >= 4) {
-        printf("ERROR: Too many arguments.\n");
-        exit(1);
+        fprintf(stderr, "ERROR: Too many arguments.\n");
+        return 0;
     }
 
     if (argc == 2) {
-        prefix_string  = "";
-        address_string = argv[1];
+        analyze_addresses("", argv[1]);
     } else {
-        prefix_string  = argv[1];
-        address_string = argv[2];
+        analyze_addresses(argv[1], argv[2]);
     }
 
-    set_address_count(address_string);
-
-    #if DEBUG_ENABLE
-        printf("Input text: %s\n", prefix_string);
-        printf("Address count: %d\n", address_total_count);
-        printf("Address list:\n%s\n\n", address_string);
-    #endif
-
-    set_address_array(address_string);
-
-    for (int i = 0; i < MAX_ADDRESS_COUNT; i++) {
-        analyze_one_address(i);
-    }
-
-    print_results();
+    print_solution();
 
     return 0;
 }
 
-void set_address_count(const char *address_string)
-{
-    if (address_string == NULL) {
-        printf("ERROR: Implementation error, wrong argument in set_address_count funtion.\n");
-        exit(1);
-    }
+void analyze_addresses(const char * pref_str, const char * addr_str) {
+    
+    size_t pref_i = 0;
+    size_t addr_i = 0;
+    
+    bool reset_pref_i_flag = 0;
+    bool prefix_match_flag = 1;
+    bool perfect_match_flag = 0;
 
-    if (strlen(address_string) == 0) {
-        printf("ERROR: No addresses available.\n");
-        exit(1);
-    }
-
-    int char_index = 0;
-    char ch = address_string[char_index];
-
-    while (ch != '\0') {
-        if (ch == '\n') {
-            address_total_count++;
+    do {
+        if (perfect_match_flag == 0) {
+            perfect_match_str[pref_i] = addr_str[addr_i];
         }
-        char_index++;
-        ch = address_string[char_index];
-    }
-    address_total_count++;
-}
+        
+        if (pref_str[pref_i] == addr_str[addr_i]) {
 
-void set_address_array(const char *address_string)
-{
-    if (address_string == NULL) {
-        printf("ERROR: Implementation error, wrong argument in set_address_array funtion.\n");
-        exit(1);
-    }
+            if (prefix_match_flag == 1 && addr_str[addr_i] == '\0') {
+                perfect_match_flag = 1;
+            }
+            
+        } else {
 
-    int address_index_array = 0;
-    int char_index_string = 0;
-    int char_index_array = 0;
-    char ch = address_string[char_index_string];
+            if (prefix_match_flag == 1 && pref_str[pref_i] == '\0') {
 
-    while (ch != '\0') {
-        if (ch == '\n') {
-            // TODO: remove redundant assignment
-            address_array[address_index_array][char_index_array] = '\0';
+                if (addr_str[addr_i] == '\n') {
+                    perfect_match_flag = 1;
+                    prefix_match_flag = 1;
+                    reset_pref_i_flag = 1;
+                } else {
+                    ascii_table_flags[(size_t)addr_str[addr_i]] = 1;
+                    prefix_match_flag = 0;
+                }
 
-            address_index_array++;
-            char_index_string++;
-            char_index_array = 0;
-        }
+            } else {
 
-        address_array[address_index_array][char_index_array] = address_string[char_index_string];
-        char_index_string++;
-        char_index_array++;
-        if (char_index_array >= 100) {
-            printf("ERROR: Maximum length of address reached.\n");
-            exit(1);
-        }
-        ch = address_string[char_index_string];
-
-    }
-}
-
-void analyze_one_address(int address_index)
-{
-
-    const char * address = address_array[address_index];
-
-    if (strcmp(prefix_string, address) == 0) {
-        address_found_index = address_index;
-    } else {
-        if (strncmp(prefix_string, address, strlen(prefix_string)) == 0) {
-            char ch = address[strlen(prefix_string) + 1];
-            enabled_chars[ch - 'a'] = 1;
-            address_found_index = address_index;
-        }   
-    }
-}
-
-void print_results()
-{
-    char results[MAX_CHARACTER_COUNT * 2] = {0};
-    int num_enabled_chars = 0;
-
-    for (int i = 0; i < MAX_CHARACTER_COUNT; i++) {
-        if (enabled_chars[i] == 1) {
-            num_enabled_chars++;
-        }
-    }
-
-    if ((num_enabled_chars == 0) && (address_found_index == ADDRESS_NOT_FOUND)) {
-        printf("Not found\n");
-    } else if (num_enabled_chars == 1) {
-        printf("Found: %s\n", address_array[address_found_index]);
-    } else if (num_enabled_chars >= 2) {
-        int j = 0;
-        for (int i = 0; i < MAX_CHARACTER_COUNT; i++) {
-            if (enabled_chars[i] == 1) {
-                results[j] = (char)(i + 'A');
-                j++;
+                if (addr_str[addr_i] == '\n') {
+                    prefix_match_flag = 1;
+                    reset_pref_i_flag = 1;
+                } else {
+                    prefix_match_flag = 0;
+                }
             }
         }
-        printf("Enable: %s\n", results);
-    } else if ((num_enabled_chars == 0) && (address_found_index != ADDRESS_NOT_FOUND)) {
-        printf("Found: %s\n", address_array[address_found_index]);
+
+    addr_i++;
+
+    if (reset_pref_i_flag) {
+        pref_i = 0;
+        reset_pref_i_flag = 0;
+    } else {
+        pref_i++;
+    }
+
+    } while (addr_str[addr_i] != '\0');
+}
+
+void print_solution() {
+
+    for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
+        if (ascii_table_flags[i] == 1) {
+            printf("%c\n", (char)i);
+        }
     }
 }
