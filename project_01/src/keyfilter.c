@@ -11,11 +11,12 @@
 
 
 void analyze_addresses(const char * prefix_str, const char * address_str);
-void print_solution();
+int  print_solution();
 
 
 bool ascii_table_flags[ASCII_CHAR_COUNT] = {0};
 char perfect_match_str[MAX_ADDR_LEN] = {0};
+bool perfect_match_flag = 0;
 
 
 int main(int argc, char const *argv[])
@@ -37,7 +38,7 @@ int main(int argc, char const *argv[])
     }
 
     print_solution();
-
+    
     return 0;
 }
 
@@ -48,7 +49,6 @@ void analyze_addresses(const char * pref_str, const char * addr_str) {
     
     bool reset_pref_i_flag = 0;
     bool prefix_match_flag = 1;
-    bool perfect_match_flag = 0;
 
     do {
         if (perfect_match_flag == 0) {
@@ -59,8 +59,10 @@ void analyze_addresses(const char * pref_str, const char * addr_str) {
 
             if (prefix_match_flag == 1 && addr_str[addr_i] == '\0') {
                 perfect_match_flag = 1;
+            } else if (addr_str[addr_i] == '\n') {
+                reset_pref_i_flag = 1;
             }
-            
+
         } else {
 
             if (prefix_match_flag == 1 && pref_str[pref_i] == '\0') {
@@ -94,14 +96,38 @@ void analyze_addresses(const char * pref_str, const char * addr_str) {
         pref_i++;
     }
 
-    } while (addr_str[addr_i] != '\0');
+    } while (addr_str[addr_i] != '\0');    bool perfect_match_flag = 0;
+
+    // add string termination to perfect_match_str if needed
+    if (perfect_match_flag == 1) {
+        size_t i = 0;
+        while (perfect_match_str[i] != '\n' && perfect_match_str != '\0') {
+            perfect_match_str[i] = toupper(perfect_match_str[i]);
+            i++;
+        }
+
+        perfect_match_str[i] = '\0';
+    }
 }
 
-void print_solution() {
-
+int print_solution() {
+    size_t match_count = 0;
     for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
         if (ascii_table_flags[i] == 1) {
-            printf("%c\n", (char)i);
+            match_count++;
+        }
+    }
+
+    if (perfect_match_flag == 0 && match_count == 0) {
+        printf("Not found\n");
+    } else if (perfect_match_flag == 1 && match_count == 0) {
+        printf("Found: %s\n", perfect_match_str);
+    } else {
+        printf("Enable:");
+        for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
+            if (ascii_table_flags[i] == 1) {
+                printf("%c\n", (char)i);
+            }
         }
     }
 }
