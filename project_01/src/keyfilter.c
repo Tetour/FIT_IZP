@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>     // TODO: remove redundant library inclusions
 #include <ctype.h>      // size_t variable type
 #include <stdbool.h>    // bool variable type
 
+#if TESTING_ENABLED == 1
+    #include "keyfilter.h"
+#endif
 
-#define DEBUG_ENABLE        0       // flag enabling debug output, 0 ... disabled, 1 ... enabled
+#define TESTING_ENABLED     0       // flag enabling debug output, 0 ... disabled, 1 ... enabled
 #define MAX_ADDR_LEN        101     // number of character + one '\0' terminating character
 #define ASCII_CHAR_COUNT    128
 
-
-void analyze_addresses(const char * prefix_str, const char * address_str);
-int  print_solution();
-
+#if TESTING_ENABLED == 0
+    void analyze_addresses(const char * prefix_str, const char * address_str);
+    void print_solution();
+#endif
 
 bool ascii_table_flags[ASCII_CHAR_COUNT] = {0};
 char perfect_match_str[MAX_ADDR_LEN] = {0};
@@ -43,10 +45,10 @@ int main(int argc, char const *argv[])
 }
 
 void analyze_addresses(const char * pref_str, const char * addr_str) {
-    
+
     size_t pref_i = 0;
     size_t addr_i = 0;
-    
+
     bool reset_pref_i_flag = 0;
     bool prefix_match_flag = 1;
 
@@ -54,7 +56,7 @@ void analyze_addresses(const char * pref_str, const char * addr_str) {
         if (perfect_match_flag == 0) {
             perfect_match_str[pref_i] = addr_str[addr_i];
         }
-        
+
         if (pref_str[pref_i] == addr_str[addr_i]) {
 
             if (prefix_match_flag == 1 && addr_str[addr_i] == '\0') {
@@ -110,7 +112,7 @@ void analyze_addresses(const char * pref_str, const char * addr_str) {
     }
 }
 
-int print_solution() {
+void print_solution() {
     size_t match_count = 0;
     for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
         if (ascii_table_flags[i] == 1) {
@@ -123,11 +125,12 @@ int print_solution() {
     } else if (perfect_match_flag == 1 && match_count == 0) {
         printf("Found: %s\n", perfect_match_str);
     } else {
-        printf("Enable:");
+        printf("Enable: ");
         for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
             if (ascii_table_flags[i] == 1) {
-                printf("%c\n", (char)i);
+                printf("%c", (char)i);
             }
         }
+        printf("\n");
     }
 }

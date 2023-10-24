@@ -2,12 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "C Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/keyfilter",
+            "program": "${workspaceFolder}/build/keyfilter",
             // "args": ["$(cat addresses.txt)"],
-            "args": ["B", "$(cat addresses.txt)"],
+            "args": ["B", "$(cat src/addresses.txt)"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
