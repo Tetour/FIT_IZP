@@ -3,48 +3,97 @@
 #include <ctype.h>      // size_t variable type
 #include <stdbool.h>    // bool variable type
 
-#if TESTING_ENABLED == 1
-    #include "keyfilter.h"
-#endif
-
-#define TESTING_ENABLED     0       // flag enabling debug output, 0 ... disabled, 1 ... enabled
 #define MAX_ADDR_LEN        101     // number of character + one '\0' terminating character
 #define ASCII_CHAR_COUNT    128
 
-#if TESTING_ENABLED == 0
-    void analyze_addresses(const char * prefix_str, const char * address_str);
-    void print_solution();
-#endif
+
+void analyze_char();
+void update();
+void print_solution();
+
 
 bool ascii_table_flags[ASCII_CHAR_COUNT] = {0};
 char perfect_match_str[MAX_ADDR_LEN] = {0};
+
 bool perfect_match_flag = 0;
+bool end_word_flag = 0;
+bool match_flag = 1;
+
+int  pref_i = 0;
+int  ch = 'a';
+char * pref;
 
 
-int main(int argc, char const *argv[])
-{
-    if (argc <= 1) {
-        fprintf(stderr, "ERROR: No argument.\n");
-        return 0;
-    }
-
-    if (argc >= 4) {
+int main(int argc, char * argv[]) {
+    if (argc >= 3) {
         fprintf(stderr, "ERROR: Too many arguments.\n");
-        return 0;
+        exit(0);
     }
 
-    if (argc == 2) {
-        analyze_addresses("", argv[1]);
+    if (argc == 1) {
+        pref = "";
     } else {
-        analyze_addresses(argv[1], argv[2]);
+        pref = argv[1];
+    }
+
+    while(ch != EOF) {
+        ch = toupper(getchar());
+
+        analyze_char(ch);
+        update();
     }
 
     print_solution();
-    
+
     return 0;
 }
 
-void analyze_addresses(const char * pref_str, const char * addr_str) {
+void analyze_char() {
+    if (!(ch == pref[pref_i]) &&  (ch == EOF) &&  (match_flag == 1) &&  (pref[pref_i] == '\0'))                     {perfect_match_flag = 1;};
+    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) &&  (ch == '\n'))                               {end_word_flag = 1;};
+    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) && !(pref[pref_i] == '\0') &&  (ch == '\n'))    {end_word_flag = 1;};
+    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) && !(pref[pref_i] == '\0') && !(ch == '\n'))    {match_flag = 0;};
+    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) &&  (pref[pref_i] == '\0') && !(ch == '\n'))    {ascii_table_flags[ch] = 1;};
+    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) &&  (pref[pref_i] == '\0') &&  (ch == '\n'))    {perfect_match_flag = 1; end_word_flag = 1;};
+}
+
+void update() {
+    if (match_flag) {
+        pref_i++;
+    }
+
+    if (end_word_flag) {
+        end_word_flag = 0;
+        match_flag = 1;
+        pref_i = 0;
+    }
+}
+
+void print_solution() {
+    size_t match_count = 0;
+    for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
+        if (ascii_table_flags[i] == 1) {
+            match_count++;
+        }
+    }
+
+    if (perfect_match_flag == 0 && match_count == 0) {
+        printf("Not found\n");
+    } else if (perfect_match_flag == 1 && match_count == 0) {
+        printf("Found: %s\n", perfect_match_str);
+    } else {
+        printf("Enable: ");
+        for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
+            if (ascii_table_flags[i] == 1) {
+                printf("%c", (char)i);
+            }
+        }
+        printf("\n");
+    }
+}
+
+/*
+void analyze_addresses(char * pref_str, char * addr_str) {
 
     size_t pref_i = 0;
     size_t addr_i = 0;
@@ -111,26 +160,4 @@ void analyze_addresses(const char * pref_str, const char * addr_str) {
         perfect_match_str[i] = '\0';
     }
 }
-
-void print_solution() {
-    size_t match_count = 0;
-    for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
-        if (ascii_table_flags[i] == 1) {
-            match_count++;
-        }
-    }
-
-    if (perfect_match_flag == 0 && match_count == 0) {
-        printf("Not found\n");
-    } else if (perfect_match_flag == 1 && match_count == 0) {
-        printf("Found: %s\n", perfect_match_str);
-    } else {
-        printf("Enable: ");
-        for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
-            if (ascii_table_flags[i] == 1) {
-                printf("%c", (char)i);
-            }
-        }
-        printf("\n");
-    }
-}
+*/

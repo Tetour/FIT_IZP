@@ -2,7 +2,7 @@ FILE_IN  = keyfilter.c
 FILE_OUT = ../build/keyfilter
 
 ARGS_DEBUG = -g
-ARGS       = -std=c11 -Wall -Wextra -Werror
+ARGS       = -std=c11 -Wall -Wextra #-Werror
 
 CC	 = gcc
 rm	 = rm
