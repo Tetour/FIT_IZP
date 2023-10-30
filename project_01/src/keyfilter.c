@@ -39,6 +39,7 @@ int main(int argc, char * argv[]) {
             get_rid_of_newline(word);
             transform_to_upper(word);
 
+            // If perfect fit od address and prefix is found, program can end here.
             if (strcmp(prefix, word) == 0) {
                 printf("Found: %s\n", word);
                 return 0;
