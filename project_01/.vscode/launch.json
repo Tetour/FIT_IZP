@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/keyfilter",
             // "args": ["$(cat addresses.txt)"],
-            "args": ["B", "$(cat src/addresses.txt)"],
+            "args": [""],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
@@ -17,7 +17,8 @@
                     "text": "-enable-pretty-printing"
                 }
             ],
-            "preLaunchTask": "Build Project For Debug"
+            "preLaunchTask": "Build Project For Debug",
+            "input": "{workspaceFolder}/test/addresses.txt"
         }
     ]
 }

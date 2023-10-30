@@ -1,10 +1,10 @@
-FILE_IN  = test_main.cpp
-FILE_OUT = ../build/keyfilter_unit_tests.out
+FILE_IN  = src/keyfilter.c
+FILE_OUT = build/keyfilter.out
 
 ARGS_DEBUG = -g
-ARGS       = -std=c++11
+ARGS       = -std=c11 -Wall -Wextra #-Werror
 
-CC	 = g++
+CC	 = gcc
 rm	 = rm
 
 all:

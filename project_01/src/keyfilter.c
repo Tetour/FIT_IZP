@@ -1,46 +1,58 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>      // size_t variable type
-#include <stdbool.h>    // bool variable type
+#include <string.h>
 
 #define MAX_ADDR_LEN        101     // number of character + one '\0' terminating character
 #define ASCII_CHAR_COUNT    128
 
 
-void analyze_char();
-void update();
+void get_rid_of_newline(char * str);
+void transform_to_upper(char * str);
 void print_solution();
 
 
-bool ascii_table_flags[ASCII_CHAR_COUNT] = {0};
-char perfect_match_str[MAX_ADDR_LEN] = {0};
+int ascii_table_flags[ASCII_CHAR_COUNT] = {0}; // array to store enabled chars as array index
 
-bool perfect_match_flag = 0;
-bool end_word_flag = 0;
-bool match_flag = 1;
+char word[MAX_ADDR_LEN] = {0};
+char last_matching_word[MAX_ADDR_LEN] = {0};
 
-int  pref_i = 0;
-int  ch = 'a';
-char * pref;
+char * prefix;
 
 
 int main(int argc, char * argv[]) {
     if (argc >= 3) {
         fprintf(stderr, "ERROR: Too many arguments.\n");
-        exit(0);
+        return 1;
     }
 
     if (argc == 1) {
-        pref = "";
+        while (fgets(word, MAX_ADDR_LEN, stdin) != NULL) {
+            get_rid_of_newline(word);
+            transform_to_upper(word);
+
+            ascii_table_flags[(int)word[0]] = 1;
+        }
     } else {
-        pref = argv[1];
-    }
+        prefix = argv[1];
+        transform_to_upper(prefix);
 
-    while(ch != EOF) {
-        ch = toupper(getchar());
+        while (fgets(word, MAX_ADDR_LEN, stdin) != NULL) {
+            get_rid_of_newline(word);
+            transform_to_upper(word);
 
-        analyze_char(ch);
-        update();
+            if (strcmp(prefix, word) == 0) {
+                printf("Found: %s\n", word);
+                return 0;
+            } else {
+                int len_pref = strlen(prefix);
+                int len_word = strlen(word);
+                if (strncmp(prefix, word, len_pref) == 0) {
+                    if (len_pref < len_word) {
+                        ascii_table_flags[(int)word[len_pref]] = 1;
+                        strcpy(last_matching_word, word);
+                    }
+                }
+            }
+        }
     }
 
     print_solution();
@@ -48,42 +60,39 @@ int main(int argc, char * argv[]) {
     return 0;
 }
 
-void analyze_char() {
-    if (!(ch == pref[pref_i]) &&  (ch == EOF) &&  (match_flag == 1) &&  (pref[pref_i] == '\0'))                     {perfect_match_flag = 1;};
-    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) &&  (ch == '\n'))                               {end_word_flag = 1;};
-    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) && !(pref[pref_i] == '\0') &&  (ch == '\n'))    {end_word_flag = 1;};
-    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) && !(pref[pref_i] == '\0') && !(ch == '\n'))    {match_flag = 0;};
-    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) &&  (pref[pref_i] == '\0') && !(ch == '\n'))    {ascii_table_flags[ch] = 1;};
-    if (!(ch == pref[pref_i]) && !(ch == EOF) && !(match_flag == 1) &&  (pref[pref_i] == '\0') &&  (ch == '\n'))    {perfect_match_flag = 1; end_word_flag = 1;};
+void get_rid_of_newline(char * str) {
+    int length = strlen(str);
+    for (int i = 0; i < length; i++) {
+        if (str[i] == '\n') {
+            str[i] = '\0';
+        }
+    }
 }
 
-void update() {
-    if (match_flag) {
-        pref_i++;
-    }
-
-    if (end_word_flag) {
-        end_word_flag = 0;
-        match_flag = 1;
-        pref_i = 0;
+void transform_to_upper(char * str) {
+    int length = strlen(str);
+    for (int i = 0; i < length; i++) {
+        if ((str[i] >= 'a') && (str[i] <= 'z')) {
+            str[i] = str[i] - 32;
+        }
     }
 }
 
 void print_solution() {
-    size_t match_count = 0;
-    for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
+    int match_count = 0;
+    for (int i = 0; i < ASCII_CHAR_COUNT; i++) {
         if (ascii_table_flags[i] == 1) {
             match_count++;
         }
     }
 
-    if (perfect_match_flag == 0 && match_count == 0) {
+    if (match_count == 0) {
         printf("Not found\n");
-    } else if (perfect_match_flag == 1 && match_count == 0) {
-        printf("Found: %s\n", perfect_match_str);
+    } else if (match_count == 1) {
+        printf("Found: %s\n", last_matching_word);
     } else {
         printf("Enable: ");
-        for (size_t i = 0; i < ASCII_CHAR_COUNT; i++) {
+        for (int i = 0; i < ASCII_CHAR_COUNT; i++) {
             if (ascii_table_flags[i] == 1) {
                 printf("%c", (char)i);
             }
@@ -91,73 +100,3 @@ void print_solution() {
         printf("\n");
     }
 }
-
-/*
-void analyze_addresses(char * pref_str, char * addr_str) {
-
-    size_t pref_i = 0;
-    size_t addr_i = 0;
-
-    bool reset_pref_i_flag = 0;
-    bool prefix_match_flag = 1;
-
-    do {
-        if (perfect_match_flag == 0) {
-            perfect_match_str[pref_i] = addr_str[addr_i];
-        }
-
-        if (pref_str[pref_i] == addr_str[addr_i]) {
-
-            if (prefix_match_flag == 1 && addr_str[addr_i] == '\0') {
-                perfect_match_flag = 1;
-            } else if (addr_str[addr_i] == '\n') {
-                reset_pref_i_flag = 1;
-            }
-
-        } else {
-
-            if (prefix_match_flag == 1 && pref_str[pref_i] == '\0') {
-
-                if (addr_str[addr_i] == '\n') {
-                    perfect_match_flag = 1;
-                    prefix_match_flag = 1;
-                    reset_pref_i_flag = 1;
-                } else {
-                    ascii_table_flags[(size_t)addr_str[addr_i]] = 1;
-                    prefix_match_flag = 0;
-                }
-
-            } else {
-
-                if (addr_str[addr_i] == '\n') {
-                    prefix_match_flag = 1;
-                    reset_pref_i_flag = 1;
-                } else {
-                    prefix_match_flag = 0;
-                }
-            }
-        }
-
-    addr_i++;
-
-    if (reset_pref_i_flag) {
-        pref_i = 0;
-        reset_pref_i_flag = 0;
-    } else {
-        pref_i++;
-    }
-
-    } while (addr_str[addr_i] != '\0');    bool perfect_match_flag = 0;
-
-    // add string termination to perfect_match_str if needed
-    if (perfect_match_flag == 1) {
-        size_t i = 0;
-        while (perfect_match_str[i] != '\n' && perfect_match_str != '\0') {
-            perfect_match_str[i] = toupper(perfect_match_str[i]);
-            i++;
-        }
-
-        perfect_match_str[i] = '\0';
-    }
-}
-*/

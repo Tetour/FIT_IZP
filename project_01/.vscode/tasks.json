@@ -22,6 +22,17 @@
                 "isDefault": false
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Run Program with Input",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/build/keyfilter", // Replace with the actual path to your program
+            "args": ["<", "test/addresses.txt"], // Use "<" to specify input redirection
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
         }
     ]
 }
