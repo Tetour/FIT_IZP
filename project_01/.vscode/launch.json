@@ -2,12 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "C Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/keyfilter",
+            "program": "${workspaceFolder}/build/keyfilter",
             // "args": ["$(cat addresses.txt)"],
-            "args": ["Praha", "$(cat addresses.txt)"],
+            "args": [""],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
@@ -17,7 +17,8 @@
                     "text": "-enable-pretty-printing"
                 }
             ],
-            "preLaunchTask": "Build Project For Debug"
+            "preLaunchTask": "Build Project For Debug",
+            "input": "{workspaceFolder}/test/addresses.txt"
         }
     ]
 }

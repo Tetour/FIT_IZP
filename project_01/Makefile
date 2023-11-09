@@ -1,8 +1,8 @@
-FILE_IN  = keyfilter.c
-FILE_OUT = keyfilter
+FILE_IN  = src/keyfilter.c
+FILE_OUT = build/keyfilter.out
 
 ARGS_DEBUG = -g
-ARGS       = -std=c11 -Wall -Wextra -Werror
+ARGS       = -std=c11 -Wall -Wextra #-Werror
 
 CC	 = gcc
 rm	 = rm

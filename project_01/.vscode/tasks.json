@@ -5,10 +5,10 @@
             "label": "Build Project",
             "type": "shell",
             "command": "make",
-            "args": ["all"],
+            "args": ["-C", "src", "all"],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": 1
             },
             "problemMatcher": []
         },
@@ -16,10 +16,21 @@
             "label": "Build Project For Debug",
             "type": "shell",
             "command": "make",
-            "args": ["debug"],
+            "args": ["-C", "src", "debug"],
             "group": {
                 "kind": "build",
                 "isDefault": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Program with Input",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/build/keyfilter", // Replace with the actual path to your program
+            "args": ["<", "test/addresses.txt"], // Use "<" to specify input redirection
+            "group": {
+                "kind": "build",
+                "isDefault": true
             },
             "problemMatcher": []
         }
