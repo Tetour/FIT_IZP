@@ -1,5 +1,5 @@
-FILE_IN  = src/keyfilter.c
-FILE_OUT = build/keyfilter.out
+FILE_IN  = src/maze.c
+FILE_OUT = build/maze.out
 
 ARGS_DEBUG = -g
 ARGS       = -std=c11 -Wall -Wextra #-Werror
