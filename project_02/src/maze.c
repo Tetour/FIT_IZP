@@ -41,10 +41,11 @@ typedef struct {
 } Start;
 
 
-int getArgVal(int const argc, char const * argv[]);
-int isNumeric(char const * str);
-int isFileValid(char const * str);
-void loadParams(char const * argv[]);
+int getArgVal(const int argc, const char * argv[]);
+int isNumeric(const char * str);
+int isFileValid(const char * filePath);
+void loadParams(const char * argv[]);
+void printMap();
 
 int argInvalid();
 int argHelp();
@@ -57,11 +58,11 @@ int startBorder(Map *map, int r, int c, int leftright);
 bool isBorder(Map *map, int r, int c, int border);
 
 
-Map   map;
-Start start;
+static Map   map;
+static Start start;
 
 
-int main(int const argc, char const * argv[])
+int main(const int argc, const char * argv[])
 {
     int argVal = INVALID;
     int retVal = FAIL;
@@ -98,17 +99,16 @@ int getArgVal(int const argc, char const * argv[])
     
     switch (argc) {
         case 2:
-            if (strcmp(argv[1], "--help")     == 0) {argVal = HELP     ;}
+            if (strcmp(argv[1], "--help") == 0) {argVal = HELP ;}
             break;
         case 3:
-            if (strcmp(argv[1], "--test")     == 0) {argVal = TEST     ;}
+            if (strcmp(argv[1], "--test") == 0) {argVal = TEST ;}
             break;
         case 5:
             if ((isNumeric(argv[2]) == NUM_VALID) && (isNumeric(argv[3]) == NUM_VALID) && (isFileValid(argv[4]) == FILE_VALID)) {
-                if (strcmp(argv[1], "--rpath")    == 0) {argVal = RPATH    ;}
-                if (strcmp(argv[1], "--lpath")    == 0) {argVal = LPATH    ;}
-                if (strcmp(argv[1], "--shortest") == 0) {argVal = SHORTEST ;}
-                loadParams(argv);
+                if (strcmp(argv[1], "--rpath")    == 0) {argVal = RPATH    ; loadParams(argv);}
+                if (strcmp(argv[1], "--lpath")    == 0) {argVal = LPATH    ; loadParams(argv);}
+                if (strcmp(argv[1], "--shortest") == 0) {argVal = SHORTEST ; loadParams(argv);}
             }
             break;
         default:
@@ -118,7 +118,7 @@ int getArgVal(int const argc, char const * argv[])
     return argVal;
 }
 
-int isNumeric(char const * str)
+int isNumeric(const char * str)
 {
     int retVal = NUM_INVALID;
 
@@ -134,8 +134,25 @@ int isNumeric(char const * str)
     return retVal;
 }
 
-int isFileValid(char const * str)
+int isFileValid(char const * filePath)
 {
+    int retVal = FAIL;
+
+    FILE * file = fopen(filePath, "r");
+
+    if (file == NULL) {
+        fprintf(stderr, "Error opening file: %s\n", filePath);
+        return 1;  // Return an error code
+    }
+
+    // Read and print the contents of the file line by line
+    char buffer[1024];  // A buffer to store read data
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        printf("Line: %s", buffer);
+    }
+
+    fclose(file);
+
     return SUCCESS;
 }
 
@@ -143,8 +160,14 @@ void loadParams(char const * argv[])
 {
     start.row = strtol(argv[2], NULL, 10);
     start.col = strtol(argv[3], NULL, 10);
+
+
 }
 
+void printMap()
+{
+
+}
 
 int argInvalid() {
     return SUCCESS;
