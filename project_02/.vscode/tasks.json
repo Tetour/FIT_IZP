@@ -5,10 +5,10 @@
             "label": "Build Project",
             "type": "shell",
             "command": "make",
-            "args": ["-C", "src", "all"],
+            "args": ["all"],
             "group": {
                 "kind": "build",
-                "isDefault": 1
+                "isDefault": true
             },
             "problemMatcher": []
         },
@@ -16,7 +16,7 @@
             "label": "Build Project For Debug",
             "type": "shell",
             "command": "make",
-            "args": ["-C", "src", "debug"],
+            "args": ["debug"],
             "group": {
                 "kind": "build",
                 "isDefault": false

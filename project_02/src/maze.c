@@ -5,6 +5,9 @@
 #include <string.h>
 
 
+#define LINE_BUFFER_SIZE 1024
+
+
 enum Args {
     HELP = 0,
     TEST,
@@ -14,25 +17,27 @@ enum Args {
     INVALID,
 };
 
-enum MainReturn {
+
+enum ReturnCodes {
     SUCCESS = 0,
-    FAIL,
-};
-
-enum IsNumReturn {
-    NUM_VALID = 0,
+    FAIL = 1,
+    NUM_VALID,
     NUM_INVALID,
+    FILE_PATH_VALID,
+    FILE_PATH_INVALID,
 };
 
-enum ISFileValid {
-    FILE_VALID = 0,
-    FILE_INVALID,
+enum ErrorCodes {
+    NO_ERROR,
+    ERROR_INVALID_FILE_PATH,
+    ERROR_INVALID_NUMBER,
 };
+
 
 typedef struct {
     int rows;
     int cols;
-    unsigned char *cells;
+    unsigned char * cells;
 } Map;
 
 typedef struct {
@@ -58,8 +63,9 @@ int startBorder(Map *map, int r, int c, int leftright);
 bool isBorder(Map *map, int r, int c, int border);
 
 
-static Map   map;
-static Start start;
+static Map   map = {.rows = 0, .cols = 0, .cells = NULL};
+static Start start = {.row = 0, .col = 0};
+static int   errorCode = NO_ERROR;
 
 
 int main(const int argc, const char * argv[])
@@ -90,6 +96,8 @@ int main(const int argc, const char * argv[])
             break;
     }
 
+    printMap();
+
     return retVal;
 }
 
@@ -102,10 +110,10 @@ int getArgVal(int const argc, char const * argv[])
             if (strcmp(argv[1], "--help") == 0) {argVal = HELP ;}
             break;
         case 3:
-            if (strcmp(argv[1], "--test") == 0) {argVal = TEST ;}
+            if ((strcmp(argv[1], "--test") == 0) && (isFileValid(argv[3]) == FILE_PATH_VALID)) {argVal = TEST ;}
             break;
         case 5:
-            if ((isNumeric(argv[2]) == NUM_VALID) && (isNumeric(argv[3]) == NUM_VALID) && (isFileValid(argv[4]) == FILE_VALID)) {
+            if ((isNumeric(argv[2]) == NUM_VALID) && (isNumeric(argv[3]) == NUM_VALID) && (isFileValid(argv[4]) == FILE_PATH_VALID)) {
                 if (strcmp(argv[1], "--rpath")    == 0) {argVal = RPATH    ; loadParams(argv);}
                 if (strcmp(argv[1], "--lpath")    == 0) {argVal = LPATH    ; loadParams(argv);}
                 if (strcmp(argv[1], "--shortest") == 0) {argVal = SHORTEST ; loadParams(argv);}
@@ -122,8 +130,9 @@ int isNumeric(const char * str)
 {
     int retVal = NUM_INVALID;
 
-    if (!(str == NULL)) {
-
+    if (str == NULL) {
+        errorCode = ERROR_INVALID_NUMBER;
+    } else {
         char *endptr;
         strtol(str, &endptr, 10);
 
@@ -136,24 +145,18 @@ int isNumeric(const char * str)
 
 int isFileValid(char const * filePath)
 {
-    int retVal = FAIL;
+    int retVal = FILE_PATH_INVALID;
 
     FILE * file = fopen(filePath, "r");
 
     if (file == NULL) {
-        fprintf(stderr, "Error opening file: %s\n", filePath);
-        return 1;  // Return an error code
+        errorCode = ERROR_INVALID_FILE_PATH;
+    } else {
+        fclose(file);
+        retVal = FILE_PATH_VALID;
     }
 
-    // Read and print the contents of the file line by line
-    char buffer[1024];  // A buffer to store read data
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        printf("Line: %s", buffer);
-    }
-
-    fclose(file);
-
-    return SUCCESS;
+    return retVal;
 }
 
 void loadParams(char const * argv[])
@@ -161,12 +164,35 @@ void loadParams(char const * argv[])
     start.row = strtol(argv[2], NULL, 10);
     start.col = strtol(argv[3], NULL, 10);
 
+    FILE * file = fopen(argv[4], "r");
+    char lineBuf[LINE_BUFFER_SIZE];
 
+    // extract number of rows and cols
+    fgets(lineBuf, sizeof(lineBuf), file);
+    sscanf(lineBuf, "%d %d", &(map.rows), &(map.cols));
+
+    // allocate enough memmory for all cells
+    map.cells = malloc(map.rows*map.cols*sizeof(unsigned char));
+
+    // copy cells from file
+    for (int tmpInt = 0, cellsIdx = 0; fscanf(file, "%u", &tmpInt) == 1; cellsIdx++) {
+        map.cells[cellsIdx] = (unsigned char)tmpInt;
+    }
+
+    fclose(file);
 }
 
 void printMap()
 {
-
+    printf("rows: %d\n", map.rows);
+    printf("cols: %d\n", map.cols);
+    printf("cells:\n");
+    for (int i = 0; i < map.rows; i++) {
+        for (int j = 0; j < map.cols; j++) {
+            printf("%c ", map.cells[i*map.cols + j]);
+        }
+        printf("\n");
+    }
 }
 
 int argInvalid() {
@@ -174,11 +200,11 @@ int argInvalid() {
 }
 
 int argHelp() {
-    printf("Program can be used in following use cases:");
-    printf("./maze --help : show possible program arguments");
-    printf("./maze --test file.txt : tests if file contains valid maze definition, prints \"Valid\" if so and \"Invalid\" otherwise");
-    printf("./maze [--rpath | --lpath | --shortest] R C file.txt finds path though maze defined in file.txt with entrance in row R and collumn C");
-    printf("\tserch option --rpath finds exit using right hand rule, --lpath left hand rule and --shortest finds shortest path to exit");
+    printf("Program can be used in following use cases:\n");
+    printf("#1 ./maze --help : show possible program arguments\n");
+    printf("#2 ./maze --test file.txt : tests if file contains valid maze definition, prints \"Valid\" if so and \"Invalid\" otherwise\n");
+    printf("#3 ./maze [--rpath | --lpath | --shortest] R C file.txt finds path though maze defined in file.txt with entrance in row R and collumn C,\n");
+    printf("   where serch option --rpath finds exit using right hand rule, --lpath left hand rule and --shortest finds shortest path to exit\n");
 
     return SUCCESS;
 }
