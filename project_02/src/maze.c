@@ -5,6 +5,7 @@
 #include <string.h>
 
 
+#define DEBUG_OUTPUT     1      // enabled ... 1, disabled ... 0
 #define LINE_BUFFER_SIZE 1024
 
 
@@ -16,7 +17,6 @@ enum Args {
     SHORTEST,
     INVALID,
 };
-
 
 enum ReturnCodes {
     SUCCESS = 0,
@@ -33,6 +33,13 @@ enum ErrorCodes {
     ERROR_INVALID_NUMBER,
 };
 
+enum Orientation {
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM,
+};
+
 
 typedef struct {
     int rows;
@@ -44,6 +51,12 @@ typedef struct {
     int row;
     int col;
 } Start;
+
+typedef struct {
+    int row;
+    int col;
+    int entered;
+} Position;
 
 
 int getArgVal(const int argc, const char * argv[]);
@@ -59,13 +72,17 @@ int argLPath();
 int argRPath();
 int argShortest();
 
+void getStartingPos();
+void printPos();
+
 int startBorder(Map *map, int r, int c, int leftright);
 bool isBorder(Map *map, int r, int c, int border);
 
 
-static Map   map = {.rows = 0, .cols = 0, .cells = NULL};
-static Start start = {.row = 0, .col = 0};
-static int   errorCode = NO_ERROR;
+static Map      map = {.rows = 0, .cols = 0, .cells = NULL};
+static Start    start = {.row = 0, .col = 0};
+static Position pos = {.row = 0, .col = 0};
+static int      errorCode = NO_ERROR;
 
 
 int main(const int argc, const char * argv[])
@@ -74,6 +91,10 @@ int main(const int argc, const char * argv[])
     int retVal = FAIL;
 
     argVal = getArgVal(argc, argv);
+
+    #if DEBUG_OUTPUT
+        printMap();
+    #endif
 
     switch (argVal) {
         case HELP:
@@ -96,7 +117,6 @@ int main(const int argc, const char * argv[])
             break;
     }
 
-    printMap();
 
     return retVal;
 }
@@ -189,7 +209,7 @@ void printMap()
     printf("cells:\n");
     for (int i = 0; i < map.rows; i++) {
         for (int j = 0; j < map.cols; j++) {
-            printf("%c ", map.cells[i*map.cols + j]);
+            printf("%d ", map.cells[i*map.cols + j]);
         }
         printf("\n");
     }
@@ -214,6 +234,13 @@ int argTest() {
 }
 
 int argLPath() {
+    pos.row = start.row;
+    pos.col = start.col;
+    bool endIsNear = false;
+    while (!endIsNear) {
+        printPosition();
+
+    }
     return SUCCESS;
 }
 
@@ -223,4 +250,24 @@ int argRPath() {
 
 int argShortest() {
     return SUCCESS;
+}
+
+void getStartingPos()
+{
+    pos.row = start.row;
+    pos.col = start.col;
+         if (start.row == 0        && start.col == 0 ) {}
+    else if (start.row == 0        && start.col == map.cols) {}
+    else if (start.row == map.rows && start.col == 0) {}
+    else if (start.row == map.rows && start.col == map.cols) {}
+    else if (start.row == 0        ) {pos.entered = TOP    ;}
+    else if (start.row == map.rows ) {pos.entered = BOTTOM ;}
+    else if (start.col == 0        ) {pos.entered = LEFT   ;}
+    else if (start.col == map.cols ) {pos.entered = RIGHT  ;}
+    pos.entered = ;
+}
+
+void printPos()
+{
+    printf("%d, %d\n", pos.row, pos.col);
 }
