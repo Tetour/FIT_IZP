@@ -55,33 +55,36 @@ typedef struct {
 typedef struct {
     int row;
     int col;
+    int idx;
     int entered;
 } Position;
 
 
-int getArgVal(const int argc, const char * argv[]);
-int isNumeric(const char * str);
-int isFileValid(const char * filePath);
-void loadParams(const char * argv[]);
-void printMap();
+static int getArgVal(const int argc, const char * argv[]);
+static int isNumeric(const char * str);
+static int isFileValid(const char * filePath);
+static void loadParams(const char * argv[]);
+static void printMap();
 
-int argInvalid();
-int argHelp();
-int argTest();
-int argLPath();
-int argRPath();
-int argShortest();
+static int argInvalid();
+static int argHelp();
+static int argTest();
+static int argLPath();
+static int argRPath();
+static int argShortest();
 
-void getStartingPos();
-void printPos();
+static void getStartingPos();
+static void printPos();
 
-int startBorder(Map *map, int r, int c, int leftright);
-bool isBorder(Map *map, int r, int c, int border);
+static int  getCellIdx(int r, int c);
+static int  startBorder(Map *map, int r, int c, int leftright);
+static bool isBorder(Map *map, int r, int c, int border);
+static bool getBit(unsigned char cell, int position);
 
 
 static Map      map = {.rows = 0, .cols = 0, .cells = NULL};
 static Start    start = {.row = 0, .col = 0};
-static Position pos = {.row = 0, .col = 0};
+static Position pos = {.row = 0, .col = 0, .idx = 0, .entered = TOP};
 static int      errorCode = NO_ERROR;
 
 
@@ -256,18 +259,66 @@ void getStartingPos()
 {
     pos.row = start.row;
     pos.col = start.col;
-         if (start.row == 0        && start.col == 0 ) {}
-    else if (start.row == 0        && start.col == map.cols) {}
-    else if (start.row == map.rows && start.col == 0) {}
-    else if (start.row == map.rows && start.col == map.cols) {}
+         if (start.row == 0        && start.col == 0        ) {
+                //isBorder();
+            }
+    else if (start.row == 0        && start.col == map.cols ) {}
+    else if (start.row == map.rows && start.col == 0        ) {}
+    else if (start.row == map.rows && start.col == map.cols ) {}
     else if (start.row == 0        ) {pos.entered = TOP    ;}
     else if (start.row == map.rows ) {pos.entered = BOTTOM ;}
     else if (start.col == 0        ) {pos.entered = LEFT   ;}
     else if (start.col == map.cols ) {pos.entered = RIGHT  ;}
-    pos.entered = ;
 }
 
 void printPos()
 {
     printf("%d, %d\n", pos.row, pos.col);
+}
+
+
+int getCellIdx(int row, int col)
+{
+    return ((row-1)*map.cols + (col-1));
+}
+
+int startBorder(Map *map, int row, int col, int leftright)
+{
+
+}
+
+bool isBorder(Map *map, int row, int col, int border)
+{
+    bool retVal = false;
+
+    switch (border) {
+        case TOP:
+            if ((!getBit(map->cells[getCellIdx(row, col)], 0)) && (row % 2 == 1)) {
+                retVal = true;
+            }
+            break;
+        case BOTTOM:
+            if ((!getBit(map->cells[getCellIdx(row, col)], 0)) && (row % 2 == 0)) {
+                retVal = true;
+            }
+            break;
+        case LEFT:
+            if (!getBit(map->cells[getCellIdx(row, col)], 0)) {
+                retVal = true;
+            }
+            break;
+        case RIGHT:
+            if (!getBit(map->cells[getCellIdx(row, col)], 1)) {
+                retVal = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return retVal;
+}
+
+bool getBit(unsigned char cell, int position) {
+    return (cell >> position) & 1;
 }
