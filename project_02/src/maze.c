@@ -55,7 +55,6 @@ typedef struct {
 typedef struct {
     int row;
     int col;
-    int idx;
     int entered;
 } Position;
 
@@ -75,16 +74,19 @@ static int argShortest();
 
 static void getStartingPos();
 static void printPos();
+static void cleanup(int argVal);
 
+static void go(int direction);
+static bool isEndNear();
 static int  getCellIdx(int r, int c);
-static int  startBorder(Map *map, int r, int c, int leftright);
-static bool isBorder(Map *map, int r, int c, int border);
+static int  startBorder(int leftright);
+static bool isBorder(int border);
 static bool getBit(unsigned char cell, int position);
 
 
 static Map      map = {.rows = 0, .cols = 0, .cells = NULL};
 static Start    start = {.row = 0, .col = 0};
-static Position pos = {.row = 0, .col = 0, .idx = 0, .entered = TOP};
+static Position pos = {.row = 0, .col = 0, .entered = TOP};
 static int      errorCode = NO_ERROR;
 
 
@@ -120,6 +122,7 @@ int main(const int argc, const char * argv[])
             break;
     }
 
+    cleanup(argVal);
 
     return retVal;
 }
@@ -137,9 +140,9 @@ int getArgVal(int const argc, char const * argv[])
             break;
         case 5:
             if ((isNumeric(argv[2]) == NUM_VALID) && (isNumeric(argv[3]) == NUM_VALID) && (isFileValid(argv[4]) == FILE_PATH_VALID)) {
-                if (strcmp(argv[1], "--rpath")    == 0) {argVal = RPATH    ; loadParams(argv);}
-                if (strcmp(argv[1], "--lpath")    == 0) {argVal = LPATH    ; loadParams(argv);}
-                if (strcmp(argv[1], "--shortest") == 0) {argVal = SHORTEST ; loadParams(argv);}
+                if (strcmp(argv[1], "--rpath")    == 0) {argVal = RPATH    ; loadParams(argv); getStartingPos();}
+                if (strcmp(argv[1], "--lpath")    == 0) {argVal = LPATH    ; loadParams(argv); getStartingPos();}
+                if (strcmp(argv[1], "--shortest") == 0) {argVal = SHORTEST ; loadParams(argv); getStartingPos();}
             }
             break;
         default:
@@ -216,6 +219,7 @@ void printMap()
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 int argInvalid() {
@@ -236,12 +240,19 @@ int argTest() {
     return SUCCESS;
 }
 
-int argLPath() {
-    pos.row = start.row;
-    pos.col = start.col;
+int argLPath()
+{
+    printPos();
+
     bool endIsNear = false;
     while (!endIsNear) {
-        printPosition();
+        printPos();
+        if (pos.entered == LEFT) {
+            if(!isBorder(LEFT)) {
+                go(LEFT);
+            }
+        }
+        endIsNear = true;
 
     }
     return SUCCESS;
@@ -259,12 +270,18 @@ void getStartingPos()
 {
     pos.row = start.row;
     pos.col = start.col;
-         if (start.row == 0        && start.col == 0        ) {
-                //isBorder();
-            }
-    else if (start.row == 0        && start.col == map.cols ) {}
-    else if (start.row == map.rows && start.col == 0        ) {}
-    else if (start.row == map.rows && start.col == map.cols ) {}
+         if (start.row == 0        && start.col == 0        ) { 
+            if(isBorder(TOP))    {pos.entered = TOP  ;}
+            if(isBorder(LEFT))   {pos.entered = LEFT ;}}
+    else if (start.row == 0        && start.col == map.cols ) {
+            if(isBorder(TOP))    {pos.entered = TOP   ;}
+            if(isBorder(RIGHT))  {pos.entered = RIGHT ;}}
+    else if (start.row == map.rows && start.col == 0        ) {
+            if(isBorder(LEFT))   {pos.entered = LEFT   ;}
+            if(isBorder(BOTTOM)) {pos.entered = BOTTOM ;}}
+    else if (start.row == map.rows && start.col == map.cols ) {
+            if(isBorder(RIGHT))  {pos.entered = RIGHT  ;}
+            if(isBorder(BOTTOM)) {pos.entered = BOTTOM ;}}
     else if (start.row == 0        ) {pos.entered = TOP    ;}
     else if (start.row == map.rows ) {pos.entered = BOTTOM ;}
     else if (start.col == 0        ) {pos.entered = LEFT   ;}
@@ -273,42 +290,87 @@ void getStartingPos()
 
 void printPos()
 {
-    printf("%d, %d\n", pos.row, pos.col);
+    printf("%d, %d", pos.row, pos.col);
+
+    #if DEBUG_OUTPUT
+        switch (pos.entered) {
+            case TOP:
+                printf("top");
+                break;
+            case BOTTOM:
+                printf("bot");
+                break;
+            case LEFT:
+                printf("left");
+                break;
+            case RIGHT:
+                printf("right");
+                break;
+            default:
+                break;
+        }
+    #endif
+
+    printf("\n");
 }
 
+static void cleanup(int argVal)
+{
+    if ((argVal == LPATH) || (argVal == RPATH) || (argVal == SHORTEST)) {
+        free(map.cells);
+    }
+}
+
+static void go(int direction)
+{
+    if (direction == TOP) {
+        
+    } else if (direction == BOTTOM) {
+
+    } else if (direction == LEFT) {
+
+    } else if (direction == RIGHT) {
+
+    }
+}
+
+static bool isEndNear()
+{
+    return true;
+}
 
 int getCellIdx(int row, int col)
 {
     return ((row-1)*map.cols + (col-1));
 }
 
-int startBorder(Map *map, int row, int col, int leftright)
+int startBorder(int leftright)
 {
 
 }
 
-bool isBorder(Map *map, int row, int col, int border)
+bool isBorder(int border)
 {
     bool retVal = false;
 
     switch (border) {
         case TOP:
-            if ((!getBit(map->cells[getCellIdx(row, col)], 0)) && (row % 2 == 1)) {
+            if ((!getBit(map.cells[getCellIdx(pos.row, pos.col)], 0)) && (pos.row % 2 == 1)) {
                 retVal = true;
             }
             break;
         case BOTTOM:
-            if ((!getBit(map->cells[getCellIdx(row, col)], 0)) && (row % 2 == 0)) {
+            if ((!getBit(map.cells[getCellIdx(pos.row, pos.col)], 0)) && (pos.row % 2 == 0)) {
                 retVal = true;
             }
             break;
         case LEFT:
-            if (!getBit(map->cells[getCellIdx(row, col)], 0)) {
+            if (!getBit(map.cells[getCellIdx(pos.row, pos.col)], 0)) {
                 retVal = true;
             }
             break;
         case RIGHT:
-            if (!getBit(map->cells[getCellIdx(row, col)], 1)) {
+            if (!getBit(map.cells[getCellIdx(pos.row, pos.col)], 1)) {
                 retVal = true;
             }
             break;
