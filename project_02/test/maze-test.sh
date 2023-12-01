@@ -55,7 +55,7 @@ test_example() {
     exampleN="$2"
 
     echo "  Example $exampleN: ./maze $execArgs"
-    ./maze $execArgs 1> $RESULTS_PATH/ex$exampleN-your_stdout.txt 2> $RESULTS_PATH/ex$exampleN-your_stderr.txt
+    ./../build/maze.out $execArgs 1> $RESULTS_PATH/ex$exampleN-your_stdout.txt 2> $RESULTS_PATH/ex$exampleN-your_stderr.txt
     diffOut=$(diff $RESULTS_PATH/ex$exampleN-ref_stdout.txt $RESULTS_PATH/ex$exampleN-your_stdout.txt 2>&1)
     ret=$?
     if [ $ret -ne 0 ]; then
@@ -82,7 +82,7 @@ mkdir $RESULTS_PATH
 
 # test compilation
 echo "  Compilation: gcc -std=c11 -Wall -Wextra maze.c -o maze" # -Werror
-gcc -std=c11 -Wall -Wextra ../src/maze.c -o maze > $RESULTS_PATH/compilation_out.txt 2>&1
+gcc -std=c11 -Wall -Wextra ../src/maze.c -o ../build/maze.out > $RESULTS_PATH/compilation_out.txt 2>&1
 ret=$?
 if [ $ret -ne 0 ]; then
     echo -e "      FAILED (see $RESULTS_PATH/compilation_out.txt)\n"

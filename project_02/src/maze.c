@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-#define DEBUG_OUTPUT     1      // enabled ... 1, disabled ... 0
+#define DEBUG_OUTPUT     0      // enabled ... 1, disabled ... 0
 #define LINE_BUFFER_SIZE 1024
 
 
@@ -35,8 +35,8 @@ enum ErrorCodes {
 
 enum Orientation {
     LEFT,
-    RIGHT,
     TOP,
+    RIGHT,
     BOTTOM,
 };
 
@@ -242,23 +242,86 @@ int argTest() {
 
 int argLPath()
 {
-    printPos();
-
     bool endIsNear = false;
+    bool moved     = false;
     while (!endIsNear) {
         printPos();
-        if (pos.entered == LEFT) {
-            if(!isBorder(LEFT)) {
-                go(LEFT);
+        moved = false;
+        while (!moved) {
+            if (pos.entered == LEFT) {
+                if(!isBorder(TOP)) {
+                    go(TOP);
+                    moved = true;
+                } else {
+                    pos.entered = TOP;
+                }
+            } else if (pos.entered == TOP) {
+                if(!isBorder(RIGHT)) {
+                    go(RIGHT);
+                    moved = true;
+                } else {
+                    pos.entered = RIGHT;
+                }
+            } else if (pos.entered == RIGHT) {
+                if(!isBorder(BOTTOM)) {
+                    go(BOTTOM);
+                    moved = true;
+                } else {
+                    pos.entered = BOTTOM;
+                }
+            } else if (pos.entered == BOTTOM) {
+                if(!isBorder(LEFT)) {
+                    go(LEFT);
+                    moved = true;
+                } else {
+                    pos.entered = LEFT;
+                }
             }
         }
-        endIsNear = true;
-
+        endIsNear = isEndNear();
     }
     return SUCCESS;
 }
 
 int argRPath() {
+    bool endIsNear = false;
+    bool moved     = false;
+    while (!endIsNear) {
+        printPos();
+        moved = false;
+        while (!moved) {
+            if (pos.entered == LEFT) {
+                if(!isBorder(BOTTOM)) {
+                    go(BOTTOM);
+                    moved = true;
+                } else {
+                    pos.entered = BOTTOM;
+                }
+            } else if (pos.entered == TOP) {
+                if(!isBorder(LEFT)) {
+                    go(LEFT);
+                    moved = true;
+                } else {
+                    pos.entered = LEFT;
+                }
+            } else if (pos.entered == RIGHT) {
+                if(!isBorder(TOP)) {
+                    go(TOP);
+                    moved = true;
+                } else {
+                    pos.entered = TOP;
+                }
+            } else if (pos.entered == BOTTOM) {
+                if(!isBorder(RIGHT)) {
+                    go(RIGHT);
+                    moved = true;
+                } else {
+                    pos.entered = RIGHT;
+                }
+            }
+        }
+        endIsNear = isEndNear();
+    }
     return SUCCESS;
 }
 
@@ -270,18 +333,18 @@ void getStartingPos()
 {
     pos.row = start.row;
     pos.col = start.col;
-         if (start.row == 0        && start.col == 0        ) { 
-            if(isBorder(TOP))    {pos.entered = TOP  ;}
-            if(isBorder(LEFT))   {pos.entered = LEFT ;}}
-    else if (start.row == 0        && start.col == map.cols ) {
-            if(isBorder(TOP))    {pos.entered = TOP   ;}
-            if(isBorder(RIGHT))  {pos.entered = RIGHT ;}}
-    else if (start.row == map.rows && start.col == 0        ) {
-            if(isBorder(LEFT))   {pos.entered = LEFT   ;}
-            if(isBorder(BOTTOM)) {pos.entered = BOTTOM ;}}
+         if (start.row == 1        && start.col == 1        ) { 
+            if(!isBorder(TOP))    {pos.entered = TOP  ;}
+            if(!isBorder(LEFT))   {pos.entered = LEFT ;}}
+    else if (start.row == 1        && start.col == map.cols ) {
+            if(!isBorder(TOP))    {pos.entered = TOP   ;}
+            if(!isBorder(RIGHT))  {pos.entered = RIGHT ;}}
+    else if (start.row == map.rows && start.col == 1        ) {
+            if(!isBorder(LEFT))   {pos.entered = LEFT   ;}
+            if(!isBorder(BOTTOM)) {pos.entered = BOTTOM ;}}
     else if (start.row == map.rows && start.col == map.cols ) {
-            if(isBorder(RIGHT))  {pos.entered = RIGHT  ;}
-            if(isBorder(BOTTOM)) {pos.entered = BOTTOM ;}}
+            if(!isBorder(RIGHT))  {pos.entered = RIGHT  ;}
+            if(!isBorder(BOTTOM)) {pos.entered = BOTTOM ;}}
     else if (start.row == 0        ) {pos.entered = TOP    ;}
     else if (start.row == map.rows ) {pos.entered = BOTTOM ;}
     else if (start.col == 0        ) {pos.entered = LEFT   ;}
@@ -290,21 +353,22 @@ void getStartingPos()
 
 void printPos()
 {
-    printf("%d, %d", pos.row, pos.col);
+    printf("%d,%d", pos.row, pos.col);
 
     #if DEBUG_OUTPUT
+        printf(", ");
         switch (pos.entered) {
-            case TOP:
-                printf("top");
-                break;
-            case BOTTOM:
-                printf("bot");
-                break;
             case LEFT:
                 printf("left");
                 break;
+            case TOP:
+                printf("top");
+                break;
             case RIGHT:
                 printf("right");
+                break;
+            case BOTTOM:
+                printf("bot");
                 break;
             default:
                 break;
@@ -324,19 +388,27 @@ static void cleanup(int argVal)
 static void go(int direction)
 {
     if (direction == TOP) {
-        
+        pos.row--;
+        pos.entered = BOTTOM;
     } else if (direction == BOTTOM) {
-
+        pos.row++;
+        pos.entered = TOP;
     } else if (direction == LEFT) {
-
+        pos.col--;
+        pos.entered = RIGHT;
     } else if (direction == RIGHT) {
-
+        pos.col++;
+        pos.entered = LEFT;
     }
 }
 
 static bool isEndNear()
 {
-    return true;
+    bool retVal = false;
+    if ((pos.row < 1) || (pos.row > map.rows) || (pos.col < 1) || (pos.col > map.cols)) {
+        retVal = true;
+    }
+    return retVal;
 }
 
 int getCellIdx(int row, int col)
@@ -346,7 +418,7 @@ int getCellIdx(int row, int col)
 
 int startBorder(int leftright)
 {
-
+    return 1;
 }
 
 bool isBorder(int border)
@@ -355,22 +427,22 @@ bool isBorder(int border)
 
     switch (border) {
         case TOP:
-            if ((!getBit(map.cells[getCellIdx(pos.row, pos.col)], 0)) && (pos.row % 2 == 1)) {
+            if ((getBit(map.cells[getCellIdx(pos.row, pos.col)], 2)) || ((pos.row + pos.col) % 2 == 1)) {
                 retVal = true;
             }
             break;
         case BOTTOM:
-            if ((!getBit(map.cells[getCellIdx(pos.row, pos.col)], 0)) && (pos.row % 2 == 0)) {
+            if ((getBit(map.cells[getCellIdx(pos.row, pos.col)], 2)) || ((pos.row + pos.col) % 2 == 0)) {
                 retVal = true;
             }
             break;
         case LEFT:
-            if (!getBit(map.cells[getCellIdx(pos.row, pos.col)], 0)) {
+            if (getBit(map.cells[getCellIdx(pos.row, pos.col)], 0)) {
                 retVal = true;
             }
             break;
         case RIGHT:
-            if (!getBit(map.cells[getCellIdx(pos.row, pos.col)], 1)) {
+            if (getBit(map.cells[getCellIdx(pos.row, pos.col)], 1)) {
                 retVal = true;
             }
             break;
