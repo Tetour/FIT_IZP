@@ -227,7 +227,13 @@ void printMap()
 #endif // DEBUG_OUTPUT
 
 int argInvalid() {
-    return SUCCESS;
+    if (errorCode == ERROR_INVALID_FILE_PATH) {
+        fprintf(stderr, "ERROR: invalid path to file");
+    } else if (errorCode == ERROR_INVALID_NUMBER) {
+        fprintf(stderr, "ERROR: invalid number in argument");
+    }
+    
+    return 1;
 }
 
 int argHelp() {

@@ -81,8 +81,8 @@ mkdir $INPUTS_PATH
 mkdir $RESULTS_PATH
 
 # test compilation
-echo "  Compilation: gcc -std=c11 -Wall -Wextra maze.c -o maze" # -Werror
-gcc -std=c11 -Wall -Wextra ../src/maze.c -o ../build/maze.out > $RESULTS_PATH/compilation_out.txt 2>&1
+echo "  Compilation: gcc -std=c11 -Wall -Wextra -Werror maze.c -o maze" # -Werror
+gcc -std=c11 -Wall -Wextra -Werror ../src/maze.c -o ../build/maze.out > $RESULTS_PATH/compilation_out.txt 2>&1
 ret=$?
 if [ $ret -ne 0 ]; then
     echo -e "      FAILED (see $RESULTS_PATH/compilation_out.txt)\n"
