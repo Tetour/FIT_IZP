@@ -63,24 +63,26 @@ static int getArgVal(const int argc, const char * argv[]);
 static int isNumeric(const char * str);
 static int isFileValid(const char * filePath);
 static void loadParams(const char * argv[]);
+#if DEBUG_OUTPUT
 static void printMap();
+#endif //DEBUG_OUTPUT
 
 static int argInvalid();
 static int argHelp();
-static int argTest();
+static int argTest(const char * argv[]);
 static int argLPath();
 static int argRPath();
 static int argShortest();
 
-static void getStartingPos();
+static void startBorder();
 static void printPos();
-static void cleanup(int argVal);
+static void cleanup();
 
 static void go(int direction);
 static bool isEndNear();
 static int  getCellIdx(int r, int c);
-static int  startBorder(int leftright);
 static bool isBorder(int border);
+static bool isBorderCell(int row, int col, int border);
 static bool getBit(unsigned char cell, int position);
 
 
@@ -106,7 +108,7 @@ int main(const int argc, const char * argv[])
             retVal = argHelp();
             break;
         case TEST:
-            retVal = argTest();
+            retVal = argTest(argv);
             break;
         case LPATH:
             retVal = argLPath();
@@ -122,7 +124,7 @@ int main(const int argc, const char * argv[])
             break;
     }
 
-    cleanup(argVal);
+    cleanup();
 
     return retVal;
 }
@@ -136,13 +138,13 @@ int getArgVal(int const argc, char const * argv[])
             if (strcmp(argv[1], "--help") == 0) {argVal = HELP ;}
             break;
         case 3:
-            if ((strcmp(argv[1], "--test") == 0) && (isFileValid(argv[3]) == FILE_PATH_VALID)) {argVal = TEST ;}
+            if ((strcmp(argv[1], "--test") == 0) && (isFileValid(argv[2]) == FILE_PATH_VALID)) {argVal = TEST ;}
             break;
         case 5:
             if ((isNumeric(argv[2]) == NUM_VALID) && (isNumeric(argv[3]) == NUM_VALID) && (isFileValid(argv[4]) == FILE_PATH_VALID)) {
-                if (strcmp(argv[1], "--rpath")    == 0) {argVal = RPATH    ; loadParams(argv); getStartingPos();}
-                if (strcmp(argv[1], "--lpath")    == 0) {argVal = LPATH    ; loadParams(argv); getStartingPos();}
-                if (strcmp(argv[1], "--shortest") == 0) {argVal = SHORTEST ; loadParams(argv); getStartingPos();}
+                if (strcmp(argv[1], "--rpath")    == 0) {argVal = RPATH    ; loadParams(argv); startBorder();}
+                if (strcmp(argv[1], "--lpath")    == 0) {argVal = LPATH    ; loadParams(argv); startBorder();}
+                if (strcmp(argv[1], "--shortest") == 0) {argVal = SHORTEST ; loadParams(argv); startBorder();}
             }
             break;
         default:
@@ -208,6 +210,7 @@ void loadParams(char const * argv[])
     fclose(file);
 }
 
+#if DEBUG_OUTPUT
 void printMap()
 {
     printf("rows: %d\n", map.rows);
@@ -221,6 +224,7 @@ void printMap()
     }
     printf("\n");
 }
+#endif // DEBUG_OUTPUT
 
 int argInvalid() {
     return SUCCESS;
@@ -236,7 +240,102 @@ int argHelp() {
     return SUCCESS;
 }
 
-int argTest() {
+int argTest(const char * argv[])
+{
+    bool fileValid = true;
+
+    FILE *file = fopen(argv[2], "r");
+
+    int rowNum;
+    int colNum;
+    
+    int rowCount = 0;
+    int colCount = 0;
+    
+    char lineBuf[100];
+
+    // extract number of rows and cols
+    fgets(lineBuf, sizeof(lineBuf), file);
+    sscanf(lineBuf, "%d %d", &(rowNum), &(colNum));
+
+    while (fgets(lineBuf, sizeof(lineBuf), file) != NULL) {
+        rowCount++;
+        colCount = 0;
+
+        // tokenize the line
+        char *token = strtok((char *)lineBuf, " \t");
+
+        while (token != NULL) {
+            strtol(token, NULL, 10);
+            colCount++;
+            token = strtok(NULL, " \t");
+        }
+        if (colCount != colNum) {
+            fileValid = false;
+        }
+    }
+
+    if (rowCount != rowNum) {
+        fileValid = false;
+    }
+
+    fclose(file);
+
+    if (fileValid == true) {
+        FILE * file = fopen(argv[2], "r");
+        char lineBuf[LINE_BUFFER_SIZE];
+
+        // extract number of rows and cols
+        fgets(lineBuf, sizeof(lineBuf), file);
+        sscanf(lineBuf, "%d %d", &(map.rows), &(map.cols));
+
+        // allocate enough memmory for all cells
+        map.cells = malloc(map.rows*map.cols*sizeof(unsigned char));
+
+        // copy cells from file
+        for (int tmpInt = 0, cellsIdx = 0; fscanf(file, "%u", &tmpInt) == 1; cellsIdx++) {
+            map.cells[cellsIdx] = (unsigned char)tmpInt;
+        }
+
+        fclose(file);
+
+        // test if neighbor cells have matching borders
+        for (int row = 1; row < map.rows; row++) {
+            for (int col = 1; col < map.cols; col++) {
+                if (!(col - 1 < 1)) {
+                    if (!(isBorderCell(row, col, LEFT) == isBorderCell(row, col - 1, RIGHT))) {
+                        fileValid = false;
+                    }
+                }
+
+                if (!(col + 1 > map.cols)) {
+                    if (!(isBorderCell(row, col, RIGHT) == isBorderCell(row, col + 1, LEFT))) {
+                        fileValid = false;
+                    }
+                }
+
+                if (!(row - 1 < 1)) {
+                    if (!(isBorderCell(row, col, TOP) == isBorderCell(row - 1, col, BOTTOM))) {
+                        fileValid = false;
+                    }
+                }
+
+                if (!(row + 1 > map.cols)) {
+                    if (!(isBorderCell(row, col, BOTTOM) == isBorderCell(row + 1, col, TOP))) {
+                        fileValid = false;
+                    }
+                }
+            }
+        }
+    }
+
+
+    if (fileValid == true) {
+        printf("Valid\n");
+    } else {
+        printf("Invalid\n");
+    }
+
     return SUCCESS;
 }
 
@@ -329,7 +428,7 @@ int argShortest() {
     return SUCCESS;
 }
 
-void getStartingPos()
+void startBorder()
 {
     pos.row = start.row;
     pos.col = start.col;
@@ -378,9 +477,9 @@ void printPos()
     printf("\n");
 }
 
-static void cleanup(int argVal)
+static void cleanup()
 {
-    if ((argVal == LPATH) || (argVal == RPATH) || (argVal == SHORTEST)) {
+    if (map.cells != NULL) {
         free(map.cells);
     }
 }
@@ -416,11 +515,6 @@ int getCellIdx(int row, int col)
     return ((row-1)*map.cols + (col-1));
 }
 
-int startBorder(int leftright)
-{
-    return 1;
-}
-
 bool isBorder(int border)
 {
     bool retVal = false;
@@ -443,6 +537,38 @@ bool isBorder(int border)
             break;
         case RIGHT:
             if (getBit(map.cells[getCellIdx(pos.row, pos.col)], 1)) {
+                retVal = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return retVal;
+}
+
+bool isBorderCell(int row, int col, int border)
+{
+    bool retVal = false;
+
+    switch (border) {
+        case TOP: 
+            if ((getBit(map.cells[getCellIdx(row, col)], 2)) || ((row + col) % 2 == 1)) {
+                retVal = true;
+            }
+            break;
+        case BOTTOM:
+            if ((getBit(map.cells[getCellIdx(row, col)], 2)) || ((row + col) % 2 == 0)) {
+                retVal = true;
+            }
+            break;
+        case LEFT:
+            if (getBit(map.cells[getCellIdx(row, col)], 0)) {
+                retVal = true;
+            }
+            break;
+        case RIGHT:
+            if (getBit(map.cells[getCellIdx(row, col)], 1)) {
                 retVal = true;
             }
             break;

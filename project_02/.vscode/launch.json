@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/maze.out",
-            "args": ["--lpath", "6", "1", "test/maze_01.txt"],
+            "args": ["--test", "test/maze_01.txt"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
