@@ -232,7 +232,7 @@ int argInvalid() {
     } else if (errorCode == ERROR_INVALID_NUMBER) {
         fprintf(stderr, "ERROR: invalid number in argument");
     }
-    
+
     return 1;
 }
 
